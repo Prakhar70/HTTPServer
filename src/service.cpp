@@ -1,0 +1,139 @@
+// service.cpp
+#include "service.hpp"
+#include "LLMServer.hpp"
+#include <thread>
+#include <cstdio>
+#include <windows.h>
+
+// Windows service state
+SERVICE_STATUS g_ServiceStatus = {};
+SERVICE_STATUS_HANDLE g_StatusHandle = nullptr;
+
+// Global server instance and server thread
+LLMServer* g_ServerInstance = nullptr;
+std::thread g_ServerThread;
+
+void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
+void WINAPI ServiceCtrlHandler(DWORD ctrlCode);
+// These function  will be useful inside this cpp file only hence they are declared here not in service.hpp
+
+
+void RunAsService() {
+    SERVICE_TABLE_ENTRY serviceTable[] = {
+        { const_cast<LPSTR>("OfflineAIService"), ServiceMain },
+        { nullptr, nullptr }
+    };
+
+    if (!StartServiceCtrlDispatcher(serviceTable)) {
+        RunAsConsoleFallback();
+    }
+}
+
+void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
+
+    g_StatusHandle = RegisterServiceCtrlHandler("OfflineAIService", ServiceCtrlHandler);
+    if (!g_StatusHandle) return;
+
+    g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+    // Specify that this service runs as a standalone process using the standard Windows (Win32) API.
+    //Even when you're on x64, the Windows API is still officially the "Win32 API"
+    
+    g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+    //Allows the service to accept stop requests from the Service Control Manager.
+    
+
+    g_ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
+
+    SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
+
+    g_ServiceStatus.dwCurrentState = SERVICE_RUNNING;
+
+    SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
+    //It’s a polite and expected handshake with Windows — "starting now..." → "all set!"
+
+    g_ServerInstance = new LLMServer(8585);
+
+    g_ServerInstance->SetKeepAlive(true);
+
+    if (!g_ServerInstance->Initialize()) {
+        printf("[Service] Initialization failed.\n");
+        return;
+    }
+
+    g_ServerThread = std::thread([]() {
+        g_ServerInstance->RunMainLoop();
+        });
+
+    WaitForSingleObject(g_ServerInstance->GetStopEvent(), INFINITE);
+
+    if (g_ServerThread.joinable()) {
+        g_ServerThread.join();
+    }
+
+    delete g_ServerInstance;
+    g_ServerInstance = nullptr;
+
+    g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+    SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
+}
+
+void WINAPI ServiceCtrlHandler(DWORD ctrlCode) {
+    switch (ctrlCode) {
+        case SERVICE_CONTROL_STOP:
+            g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+            SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
+
+            if (g_ServerInstance) {
+                SetEvent(g_ServerInstance->GetStopEvent());
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+
+void RunAsConsoleFallback() {
+    printf("[INFO] Running as console app (fallback)\n");
+
+    SetConsoleCtrlHandler([](DWORD ctrlType) -> BOOL {
+        if (ctrlType == CTRL_C_EVENT || ctrlType == CTRL_CLOSE_EVENT ||
+            ctrlType == CTRL_BREAK_EVENT || ctrlType == CTRL_LOGOFF_EVENT || ctrlType == CTRL_SHUTDOWN_EVENT) {
+            printf("[Console] Shutdown signal received (Ctrl+C or window close).\n");
+
+            if (g_ServerInstance) {
+                SetEvent(g_ServerInstance->GetStopEvent());
+            }
+
+            return TRUE;
+        }
+        return FALSE;
+        }, TRUE);
+
+    LLMServer server(8585);
+    g_ServerInstance = &server;
+
+    g_ServerInstance->SetKeepAlive(true);
+
+    if (!server.Initialize()) {
+        printf("[Console] Initialization failed.\n");
+        return;
+    }
+
+    std::thread serverThread([]() {
+        g_ServerInstance->RunMainLoop();
+        });
+
+    WaitForSingleObject(server.GetStopEvent(), INFINITE);
+
+    if (serverThread.joinable()) {
+        serverThread.join();
+    }
+
+    g_ServerInstance = nullptr;
+    printf("[Console] Shutdown complete. Exiting.\n");
+    exit(0);
+}
+
+
