@@ -158,35 +158,26 @@ void ConnectionContext::UpdateHeaderInfo() {
     }
 }
 
-// bool ConnectionContext::ProcessMessage(LLMServer * pServer){
-//     ExpandBuffer(vResponse, RESPONSE_BUFFER_LENGTH);
-//     vResponse->uUtilSize = 0;
-//     return ProcessHTTPMessage(pServer);
-// }
+bool ConnectionContext::ProcessMessage(LLMServer * pServer){
+    ExpandBuffer(vResponse, RESPONSE_BUFFER_LENGTH);
+    vResponse->uUtilSize = 0;
+    return ProcessHTTPMessage(pServer);
+}
 
 bool ConnectionContext::IsExHSComplete(){
     return vExHSComplete;
 }
 
-// bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
-//     bool retval = true;
+bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
+    bool retval = true;
 
-//     if(!IsExHSComplete()){
-//         retval = pServer->HandShake(this);
-//         if(retval == true){
-
-//         }else{
-//             vIOMsgState = eMsgState::STATE_MSG_END;
-//             return true;
-//         }
-//     }
-
-//     vIOMsgState = eMsgState::STATE_AWAITING_RESPONSE;
-//     vClientContext->ProcessRequest(this);
-//     return false;
+    
+    vIOMsgState = eMsgState::STATE_AWAITING_RESPONSE;
+    
+    return false;
     
 
-// }
+}
 
 bool ConnectionContext::RecvMessage(eMsgState &pCurState){
     bool result;
@@ -468,9 +459,9 @@ eMsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
                 break;
 
             case eMsgState::STATE_PROCESS_MESSAGE://7
-                //rc = ProcessMessage(pServer);
-                // curstate = vIOMsgState;
-                // break;
+                rc = ProcessMessage(pServer);
+                curstate = vIOMsgState;
+                break;
 
             case eMsgState::STATE_SEND_HEADER://8
                 //rc = SendHeader(curstate);

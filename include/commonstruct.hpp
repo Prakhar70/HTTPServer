@@ -32,3 +32,8 @@ struct tHTTPHeaderInfo {
 
     bool uCompressResp = false;
 };
+
+struct tThreadPoolData{
+    void * uProcessor;
+    void * uData;
+};

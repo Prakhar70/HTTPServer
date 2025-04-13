@@ -1,6 +1,7 @@
 // service.cpp
 #include "service.hpp"
 #include "LLMServer.hpp"
+#include <tasynchndlr.hpp>
 
 
 // Windows service state
@@ -10,6 +11,8 @@ SERVICE_STATUS_HANDLE g_StatusHandle = nullptr;
 // Global server instance and server thread
 LLMServer* g_ServerInstance = nullptr;
 std::thread g_ServerThread;
+TAsyncHndlr* g_AsyncHndlr = nullptr;
+
 
 void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
 void WINAPI ServiceCtrlHandler(DWORD ctrlCode);
@@ -50,6 +53,8 @@ void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
     //It’s a polite and expected handshake with Windows — "starting now..." → "all set!"
 
     g_ServerInstance = new LLMServer(8080);
+    g_AsyncHndlr = new TAsyncHndlr();
+    g_AsyncHndlr->Initialize(new LLMReqProcessor(), 15);
 
     g_ServerInstance->SetKeepAlive(true);
 
@@ -70,6 +75,8 @@ void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
 
     delete g_ServerInstance;
     g_ServerInstance = nullptr;
+    delete g_AsyncHndlr;
+    g_AsyncHndlr = nullptr;
 
     g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
@@ -110,6 +117,10 @@ void RunAsConsoleFallback() {
         }, TRUE);
 
     LLMServer server(8080);
+    TAsyncHndlr asyn_hdlr;
+    g_AsyncHndlr = &asyn_hdlr;
+    
+    g_AsyncHndlr->Initialize(new LLMReqProcessor(), 15);
     g_ServerInstance = &server;
 
     g_ServerInstance->SetKeepAlive(true);
@@ -130,6 +141,7 @@ void RunAsConsoleFallback() {
     }
 
     g_ServerInstance = nullptr;
+    g_AsyncHndlr = nullptr;
     printf("[Console] Shutdown complete. Exiting.\n");
     exit(0);
 }
