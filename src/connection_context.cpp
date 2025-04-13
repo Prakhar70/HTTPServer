@@ -32,7 +32,6 @@ ConnectionContext::ConnectionContext(const ConnectionInfo& info, LLMServer * pSe
     // Allocate request header
 
     vReqHeader = new tBuffer();
-    vResponse->uBuffer = new char[RESPONSE_BUFFER_LENGTH];
     vReqHeader->uBuffer = new char[INITIAL_HEADER_LENGTH];
     vReqHeader->uBuffSize = INITIAL_HEADER_LENGTH;
     vReqHeader->uUtilSize = 0;
