@@ -5,7 +5,8 @@ ConnectionContext::ConnectionContext(const ConnectionInfo& info)
       isKeepAlive(true),
       vIOMsgState(eMsgState::STATE_MSG_START),
       vHTTPHeaderLen(0),
-      vMsgSize(0)
+      vMsgSize(0),
+      vExHSComplete(false)
 {
     // Allocate request buffer 
     vRequest = new tBuffer();
@@ -38,8 +39,6 @@ ConnectionContext::ConnectionContext(const ConnectionInfo& info)
 
     // HTTP Header info structure which contains information about HTTP method, version, etc.
     vHTTPHeaderInfo = new tHTTPHeaderInfo();
-
-    
 }
 
 ConnectionContext::~ConnectionContext(){
@@ -158,6 +157,73 @@ void ConnectionContext::UpdateHeaderInfo() {
         }
     }
 }
+
+// bool ConnectionContext::ProcessMessage(LLMServer * pServer){
+//     ExpandBuffer(vResponse, RESPONSE_BUFFER_LENGTH);
+//     vResponse->uUtilSize = 0;
+//     return ProcessHTTPMessage(pServer);
+// }
+
+bool ConnectionContext::IsExHSComplete(){
+    return vExHSComplete;
+}
+
+// bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
+//     bool retval = true;
+
+//     if(!IsExHSComplete()){
+//         retval = pServer->HandShake(this);
+//         if(retval == true){
+
+//         }else{
+//             vIOMsgState = eMsgState::STATE_MSG_END;
+//             return true;
+//         }
+//     }
+
+//     vIOMsgState = eMsgState::STATE_AWAITING_RESPONSE;
+//     vClientContext->ProcessRequest(this);
+//     return false;
+    
+
+// }
+
+bool ConnectionContext::RecvMessage(eMsgState &pCurState){
+    bool result;
+
+    vBytesTrnfs += vPrevIOBytes;
+    vPrevIOBytes = 0;
+
+    if(vMsgSize == vBytesTrnfs){
+
+        vIOMsgState = eMsgState::STATE_PROCESS_MESSAGE;
+        pCurState = vIOMsgState;
+
+        vRequest->uUtilSize = vBytesTrnfs;
+        if(!vHTTPHeaderInfo->uCompress){
+            if(vRequest->uUtilSize <= vRequest->uBuffSize){
+                //expand the buffer by the given size
+                ExpandBuffer(vRequest, vRequest->uUtilSize + 1);
+            }
+            vRequest->uBuffer[vRequest->uUtilSize] = '\0';
+        }
+        return true;
+    }
+
+    vWsabuf.len = vMsgSize - vBytesTrnfs;
+
+    vWsabuf.buf = vRequest->uBuffer + vBytesTrnfs;
+
+    result = ReadMessageOnSocket();
+
+    if(result == false){
+        vIOMsgState = eMsgState::STATE_IO_ERROR;
+        pCurState = eMsgState::STATE_MSG_END;
+    }
+
+    return false;
+}
+
 
 
 
@@ -398,16 +464,16 @@ eMsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
                 break;
             
             case eMsgState::STATE_RECV_MESSAGE://6
-                //rc = RecvMessage(curstate);
+                rc = RecvMessage(curstate);
                 break;
 
             case eMsgState::STATE_PROCESS_MESSAGE://7
-                //rc = ProcessMessage();
-                curstate = vIOMsgState;
-                break;
+                //rc = ProcessMessage(pServer);
+                // curstate = vIOMsgState;
+                // break;
 
             case eMsgState::STATE_SEND_HEADER://8
-                //rc = SendHeade`r(curstate);
+                //rc = SendHeader(curstate);
                 break;
 
             case eMsgState::STATE_SEND_MESSAGE://9

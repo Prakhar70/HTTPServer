@@ -31,6 +31,10 @@ class ConnectionContext {
         void ResetHTTPHeaderInfo();
         void InitializeHTTPHeaderInfo();
         void UpdateHeaderInfo();
+        bool RecvMessage(eMsgState &pCurState);
+        bool ProcessMessage(LLMServer * pServer);
+        bool ProcessHTTPMessage(LLMServer * pServer);
+        bool ConnectionContext::IsExHSComplete();
 
     private:
         ConnectionInfo clientInfo;
@@ -53,7 +57,7 @@ class ConnectionContext {
         unsigned long vContentAlreadyRead;
         tHTTPHeaderInfo * vHTTPHeaderInfo;
         std::vector<std::pair<std::string, std::string>> vReqKeyValueList;
-
+        bool vExHSComplete;
  };
 
  

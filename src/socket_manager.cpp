@@ -119,6 +119,14 @@ bool SocketManager::SetAcceptEvent() {
     return true;
 }
 
+bool SocketManager::ResetAcceptEvent() {
+
+    if(WSAEventSelect(vListen, vAcceptEvent, 0) == SOCKET_ERROR){
+        return false;
+    }
+    return true;
+}
+
 
 bool SocketManager::CreateAndBindSocket() {
 

@@ -18,7 +18,12 @@ add_library(syncflag STATIC
     src/syncflag.cpp
 )
 
-# Build main executable
+# Build threader library
+add_library(threader STATIC
+    src/threader.cpp
+)
+
+# Build main server executable
 add_executable(HTTPServer
     src/main.cpp
     src/connection_context.cpp
@@ -27,5 +32,17 @@ add_executable(HTTPServer
     src/socket_manager.cpp
 )
 
-# Link libraries
-target_link_libraries(HTTPServer PRIVATE syncflag ws2_32)
+# Link libraries for main server
+target_link_libraries(HTTPServer PRIVATE syncflag threader ws2_32)
+
+# Test: syncflag
+add_executable(test_syncflag
+    src/test_syncflag.cpp
+)
+target_link_libraries(test_syncflag PRIVATE syncflag ws2_32)
+
+# Test: threader
+add_executable(test_threader
+    src/test_threader.cpp
+)
+target_link_libraries(test_threader PRIVATE syncflag threader ws2_32)

@@ -20,6 +20,7 @@ public:
     WSAEVENT GetAcceptEvent();
     bool IsAcceptEventOccured();
     bool SetAcceptEvent();
+    bool ResetAcceptEvent();
     bool AcceptConnection(ConnectionInfo* pClient, bool acceptNewConnections, bool setKeepAlive);
 
 private:

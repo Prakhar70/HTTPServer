@@ -241,7 +241,7 @@ bool LLMServer::HandleAcceptEvent() {
     if (!vSocketMgr->IsAcceptEventOccured()) {
         return true;
     }
-    
+
     ConnectionInfo clientInfo = {};
     ConnectionContext *cc;
 
@@ -250,12 +250,11 @@ bool LLMServer::HandleAcceptEvent() {
         GetAcceptNewConnection(),
         IsKeepAliveSet()  // keepAlive
     );
-
-    // Not needed..
-    if (vSocketMgr->SetAcceptEvent()) {
-        closesocket(clientInfo.uSocket);
-        return false;
-    }
+    
+     if (!vSocketMgr->SetAcceptEvent()) {
+         closesocket(clientInfo.uSocket);
+         return false;
+     }
 
     if (!acceptSuccess) {
         printf("[LLMServer] AcceptConnection failed.\n");
@@ -279,6 +278,7 @@ bool LLMServer::HandleAcceptEvent() {
     cc->SetKeepConnectionAlive(KeepConnection());
 
     printf("Client IP: %s\n", cc->GetClientInfo().uIP.c_str());
+    printf("Client port %d\n", cc->GetClientInfo().uPort);
 
     // Bind socket to IOCP using connection context as key
     if (CreateIoCompletionPort(
@@ -305,11 +305,7 @@ bool LLMServer::HandleAcceptEvent() {
 
     // Connection accepted and queued for worker thread
     return true;    
-    
 
-
-    // TODO: Accept socket, create per-client context, etc.
-    return true;
 }
 
 ConnectionContext* LLMServer::CreateConnectionContext(const ConnectionInfo& clientInfo) {

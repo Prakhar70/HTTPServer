@@ -1,8 +1,6 @@
 // LLMServer.hpp
 #pragma once
 
-class ConnectionContext;
-
 #include "syncflag.hpp"
 #include "pch.hpp"
 #include "connection_context.hpp"
@@ -13,6 +11,7 @@ class ConnectionContext;
 #include <vector>
 #include <thread>
 
+class ConnectionContext;
 
 class LLMServer {
 public:
