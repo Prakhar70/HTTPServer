@@ -6,7 +6,13 @@ ConnectionContext::ConnectionContext(const ConnectionInfo& info, LLMServer * pSe
       vIOMsgState(eMsgState::STATE_MSG_START),
       vHTTPHeaderLen(0),
       vMsgSize(0),
-      vServer(pServer)
+      vServer(pServer),
+      vWsabuf{},
+      vReqRespType(eReqRespType::REQUEST),
+      vBytesTrnfs(0),
+    vContentAlreadyRead(0),
+    vOverlapped{},
+    vPrevIOBytes(0)
 {
     // Allocate request buffer 
     vRequest = new tBuffer();
@@ -186,7 +192,7 @@ bool ConnectionContext::SendHeader(eMsgState& pCurState){
     return false;
 } 
 
-bool ConnectionContext::SendMessage(eMsgState& pCurState){
+bool ConnectionContext::SendBody(eMsgState& pCurState){
     vBytesTrnfs += vPrevIOBytes;
     vPrevIOBytes =0;
     bool result = false;
@@ -213,7 +219,7 @@ bool ConnectionContext::SendMessageOnSocket(){
 
     memset(&vOverlapped, 0, sizeof(WSAOVERLAPPED));
 
-    rc = WSASend(clientInfo.uSocket, &vWsabuf, 1, &bytes, &flag, &vOverlapped, NULL);
+    rc = WSASend(clientInfo.uSocket, &vWsabuf, 1, &bytes, flag, &vOverlapped, NULL);
 
     if(rc != 0){
         err = WSAGetLastError();
@@ -227,36 +233,6 @@ bool ConnectionContext::SendMessageOnSocket(){
         return false;
     }
     return true;
-}
-bool ConnectionContext::ReadMessageOnSocket(){
-    unsigned long bytes = 0;
-    unsigned long flag = 0;
-    int rc = 0;
-    int err = 0;
-
-    memset(&vOverlapped, 0, sizeof(WSAOVERLAPPED));
-
-    rc = WSARecv(clientInfo.uSocket, &vWsabuf, 1, &bytes, &flag, &vOverlapped, NULL);
-
-    if(rc != 0){
-        err = WSAGetLastError();
-    }
-
-    if(err == WSA_IO_PENDING){
-        return true;
-    }
-
-    if(err == SOCKET_ERROR && err != WSA_IO_PENDING){
-        return false;
-    }
-    return true;
-    
-}
-
-bool ConnectionContext::SendMessage(eMsgState& pCurState){
-    vBytesTrnfs += vPrevIOBytes;
-    vPrevIOBytes =0;
-    
 }
 
 bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
@@ -421,7 +397,12 @@ void ConnectionContext::ExpandBuffer(tBuffer * pBuffer, unsigned short pReqBytes
 
     if(pReqBytes > pBuffer->uBuffSize){
 
-        temptr = (char *)calloc(pReqBytes, sizeof(char));
+        //temptr = (char *)calloc(pReqBytes, sizeof(char));
+        char* temptr = new char[pReqBytes]();
+        if (!temptr) {
+            printf("[ExpandBuffer] ERROR: Out of memory while expanding buffer to %u bytes\n", pReqBytes);
+            return;
+        }
 
         if(pBuffer->uBuffer){
             memcpy(temptr, pBuffer->uBuffer, pBuffer->uUtilSize);
@@ -576,7 +557,7 @@ eMsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
                 break;
 
             case eMsgState::STATE_SEND_MESSAGE://9
-                rc = SendMessage(curstate);
+                rc = SendBody(curstate);
                 break;
 
             case eMsgState::STATE_MSG_END://10

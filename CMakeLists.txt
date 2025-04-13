@@ -30,6 +30,9 @@ add_executable(HTTPServer
     src/llmserver.cpp
     src/service.cpp
     src/socket_manager.cpp
+    src/tasynchndlr.cpp
+    src/LLMReqProcessor.cpp
+    src/tthreadpool.cpp
 )
 
 # Link libraries for main server

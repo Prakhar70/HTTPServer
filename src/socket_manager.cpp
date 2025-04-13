@@ -1,7 +1,6 @@
 
 // SocketManager.cpp
 #include "socket_manager.hpp"
-#include <cstdio>
 
 SocketManager::SocketManager(USHORT port)
     : vPort(port), vListen(INVALID_SOCKET), vAcceptEvent(0) {}

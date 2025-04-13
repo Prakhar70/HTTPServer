@@ -1,8 +1,5 @@
 #include "tthreader.hpp"
-#include <cassert>
-#include <iostream>
-#include <thread>
-#include <chrono>
+
 
 DWORD WINAPI TThreader::WinThreadFunc(LPVOID lpParam) {
     TThreadControlData* tcd = static_cast<TThreadControlData*>(lpParam);
@@ -68,13 +65,12 @@ void TThreader::InitializeThreads(WORD pCount) {
             SyncWriteHold lock(&rSyncFlag);
             ++rNumThreads;
         }
-
+        
         rThreadQueue->Push(tcd);
     }
 }
 
 void TThreader::FinalizeThreads() {
-    
     for (WORD i = rNumThreads; i > 0; --i) {
         TThreadControlData* tcd = nullptr;
         while (!rThreadQueue->Pop(tcd)) {

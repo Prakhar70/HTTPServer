@@ -15,6 +15,8 @@ struct tThreadData {
     TAsyncHndlr* uAsyncHndlr;
 };
 
+class TThreadPoolHndlr;
+
 class TAsyncHndlr {
 public:
     TAsyncHndlr();
@@ -24,7 +26,7 @@ public:
     void Finalize();
 
     void Write(void* pRequest);
-    void WriteFirst(void* pRequest);
+    //void WriteFirst(void* pRequest);
 
     void* GetRequest();
     TThreadPoolHndlr* GetThreadPoolHndlr();
@@ -38,13 +40,12 @@ public:
 private:
     void InitializeThreadPoolHndlr(uint16_t pThreadCount);
     void FinalizeThreadPoolHndlr();
-
     static DWORD WINAPI ProcessQRequest(LPVOID lpParam);
 
 private:
     SyncFlag vAsyncSyncFlag;
 
-    SyncQueue<void *>* vReqQueue;                  // Use your TSyncQueueList*
+    SyncQueue<void *>* vReqQueue;
     HANDLE vReqThStartEvent;
     HANDLE vReqThStopEvent;
     HANDLE vPrepareShutdownEvent;

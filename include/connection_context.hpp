@@ -40,7 +40,7 @@ class ConnectionContext {
         LLMServer* GetServer();
         void ResponseReady();
         bool SendHeader(eMsgState& pCurState);
-        bool SendMessage(eMsgState& pCurState);
+        bool SendBody(eMsgState& pCurState);
         bool SendMessageOnSocket();
 
 

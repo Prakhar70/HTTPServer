@@ -1,6 +1,9 @@
 // syncflag.hpp
 #pragma once
 
+#include "pch.hpp"
+#include <cstdio>
+
 struct SyncFlag {
     volatile short vHoldFlag;
     volatile short vHoldCount;

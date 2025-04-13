@@ -107,6 +107,10 @@ void* TAsyncHndlr::GetRequest() {
     }
     return msg;
 }
+
+TThreadPoolHndlr* TAsyncHndlr::GetThreadPoolHndlr() {
+    return vThreadPoolHndlr;
+}
 void TAsyncHndlr::StartQProcessing() {
     SetEvent(vReqThStartEvent);
 }
