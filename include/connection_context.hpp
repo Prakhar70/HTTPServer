@@ -39,6 +39,10 @@ class ConnectionContext {
         tBuffer* GetResponseBody();
         LLMServer* GetServer();
         void ResponseReady();
+        bool SendHeader(eMsgState& pCurState);
+        bool SendMessage(eMsgState& pCurState);
+        bool SendMessageOnSocket();
+
 
     private:
         ConnectionInfo clientInfo;

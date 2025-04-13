@@ -164,6 +164,101 @@ bool ConnectionContext::ProcessMessage(LLMServer * pServer){
     return ProcessHTTPMessage(pServer);
 }
 
+bool ConnectionContext::SendHeader(eMsgState& pCurState){
+    vBytesTrnfs += vPrevIOBytes;
+    vPrevIOBytes =0;
+    bool result = false;
+    if(vMsgSize == vBytesTrnfs){
+        vIOMsgState = eMsgState::STATE_SEND_MESSAGE;
+        pCurState=vIOMsgState;
+        vMsgSize = vResponse->uUtilSize;
+        vBytesTrnfs = 0;
+        vPrevIOBytes = 0;
+        return true;
+    }
+    vWsabuf.len = vMsgSize - vBytesTrnfs;
+    vWsabuf.buf=vRespHeader->uBuffer + vBytesTrnfs;
+    result = SendMessageOnSocket();
+    if(result == false){
+        vIOMsgState = eMsgState::STATE_IO_ERROR;
+        pCurState=eMsgState::STATE_IO_ERROR;
+    }
+    return false;
+} 
+
+bool ConnectionContext::SendMessage(eMsgState& pCurState){
+    vBytesTrnfs += vPrevIOBytes;
+    vPrevIOBytes =0;
+    bool result = false;
+    if(vMsgSize == vBytesTrnfs){
+        vIOMsgState = eMsgState::STATE_MSG_END;
+        pCurState=vIOMsgState;
+        return true;
+    }
+    vWsabuf.len = vMsgSize - vBytesTrnfs;
+    vWsabuf.buf=vResponse->uBuffer + vBytesTrnfs;
+    result = SendMessageOnSocket();
+    if(result == false){
+        vIOMsgState = eMsgState::STATE_IO_ERROR;
+        pCurState=eMsgState::STATE_IO_ERROR;
+    }
+    return false;
+}  
+
+bool ConnectionContext::SendMessageOnSocket(){
+    unsigned long bytes = 0;
+    unsigned long flag = 0;
+    int rc = 0;
+    int err = 0;
+
+    memset(&vOverlapped, 0, sizeof(WSAOVERLAPPED));
+
+    rc = WSASend(clientInfo.uSocket, &vWsabuf, 1, &bytes, &flag, &vOverlapped, NULL);
+
+    if(rc != 0){
+        err = WSAGetLastError();
+    }
+
+    if(err == WSA_IO_PENDING){
+        return true;
+    }
+
+    if(err == SOCKET_ERROR && err != WSA_IO_PENDING){
+        return false;
+    }
+    return true;
+}
+bool ConnectionContext::ReadMessageOnSocket(){
+    unsigned long bytes = 0;
+    unsigned long flag = 0;
+    int rc = 0;
+    int err = 0;
+
+    memset(&vOverlapped, 0, sizeof(WSAOVERLAPPED));
+
+    rc = WSARecv(clientInfo.uSocket, &vWsabuf, 1, &bytes, &flag, &vOverlapped, NULL);
+
+    if(rc != 0){
+        err = WSAGetLastError();
+    }
+
+    if(err == WSA_IO_PENDING){
+        return true;
+    }
+
+    if(err == SOCKET_ERROR && err != WSA_IO_PENDING){
+        return false;
+    }
+    return true;
+    
+}
+
+bool ConnectionContext::SendMessage(eMsgState& pCurState){
+    vBytesTrnfs += vPrevIOBytes;
+    vPrevIOBytes =0;
+    
+}
+
 bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
 
     if (!g_AsyncHndlr) {
@@ -184,6 +279,10 @@ tBuffer* ConnectionContext::GetResponseBody(){
     return vResponse;
 }
 void ConnectionContext::ResponseReady(){
+    vMsgSize = vRespHeader->uUtilSize;
+    vBytesTrnfs = 0;
+    vPrevIOBytes = 0;
+    SetState(eMsgState::STATE_SEND_HEADER);
     PostQueuedCompletionStatus(vServer->GetIOCP(), 0, reinterpret_cast<ULONG_PTR>(this), NULL);
 }
 
@@ -226,9 +325,6 @@ bool ConnectionContext::RecvMessage(eMsgState &pCurState){
 
     return false;
 }
-
-
-
 
 void ConnectionContext::ResetHTTPHeaderInfo(){
     vHTTPHeaderInfo->uMethod.clear();
@@ -476,11 +572,11 @@ eMsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
                 break;
 
             case eMsgState::STATE_SEND_HEADER://8
-                //rc = SendHeader(curstate);
+                rc = SendHeader(curstate);
                 break;
 
             case eMsgState::STATE_SEND_MESSAGE://9
-                //rc = SendMessage(curstate);
+                rc = SendMessage(curstate);
                 break;
 
             case eMsgState::STATE_MSG_END://10
