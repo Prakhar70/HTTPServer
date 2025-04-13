@@ -17,37 +17,6 @@ This project implements a lightweight, high-performance HTTP server written from
 - **Concurrency**: IOCP, custom spinlocks, and thread pooling
 - **Libraries**: Pure Win32 API (no external libraries)
 
-## 📁 Project Structure
-
-```
-HTTPServer/
-├── include/
-│   ├── connection_context.hpp
-│   ├── llmserver.hpp
-│   ├── socket_manager.hpp
-│   ├── syncflag.hpp
-│   ├── syncqueue.hpp
-│   ├── tasynchndlr.hpp
-│   ├── treqprocessor.hpp
-│   ├── tthreadpoolhandler.hpp
-│   └── tthreader.hpp
-├── src/
-│   ├── connection_context.cpp
-│   ├── llmserver.cpp
-│   ├── LLMReqProcessor.cpp
-│   ├── service.cpp
-│   ├── socket_manager.cpp
-│   ├── syncflag.cpp
-│   ├── tasynchndlr.cpp
-│   ├── threader.cpp
-│   └── tthreadpool.cpp
-├── test/
-│   ├── test_syncflag.cpp
-│   └── test_threader.cpp
-├── main.cpp
-└── CMakeLists.txt
-```
-
 ## 📌 Quick Start
 
 ### Requirements
