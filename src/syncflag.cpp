@@ -1,7 +1,5 @@
 // syncflag.cpp
 #include "syncflag.hpp"
-#include "pch.hpp"
-#include <cstdio>
 
 SyncFlag::SyncFlag() {
     vHoldFlag = 0;
