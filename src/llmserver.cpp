@@ -162,6 +162,7 @@ void LLMServer::ProcessClientRequest(LLMServer* pThis) {
         if(result == eMsgState::STATE_MSG_END){
             if(cc->Close() == true){
                 //TODO : close connect
+                delete cc;
             }
         }
     }

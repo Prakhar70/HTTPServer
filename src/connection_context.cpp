@@ -24,7 +24,7 @@ ConnectionContext::ConnectionContext(const ConnectionInfo& info, LLMServer * pSe
     
 
     vResponse = new tBuffer();
-    vResponse->uBuffer = (char *)calloc(RESPONSE_BUFFER_LENGTH, sizeof(char));
+    vResponse->uBuffer = new char[RESPONSE_BUFFER_LENGTH];
     vResponse->uBuffSize = RESPONSE_BUFFER_LENGTH;
     vResponse->uUtilSize = 0;
 
@@ -32,14 +32,15 @@ ConnectionContext::ConnectionContext(const ConnectionInfo& info, LLMServer * pSe
     // Allocate request header
 
     vReqHeader = new tBuffer();
-    vReqHeader->uBuffer = (char *)calloc(INITIAL_HEADER_LENGTH, sizeof(char));
+    vResponse->uBuffer = new char[RESPONSE_BUFFER_LENGTH];
+    vReqHeader->uBuffer = new char[INITIAL_HEADER_LENGTH];
     vReqHeader->uBuffSize = INITIAL_HEADER_LENGTH;
     vReqHeader->uUtilSize = 0;
 
     // Allocate response header
 
     vRespHeader = new tBuffer();
-    vRespHeader->uBuffer = (char *)calloc(INITIAL_HEADER_LENGTH, sizeof(char));
+    vRespHeader->uBuffer = new char[INITIAL_HEADER_LENGTH];
     vRespHeader->uBuffSize = INITIAL_HEADER_LENGTH;
     vRespHeader->uUtilSize = 0;
 
@@ -55,24 +56,24 @@ ConnectionContext::~ConnectionContext(){
     }
         
     if(vRequest->uBuffSize != 0){
-        free(vRequest->uBuffer);
+        delete[] vRequest->uBuffer;
     }
-    free(vRequest);
+    delete (vRequest);
 
     if(vResponse->uBuffSize != 0){
-        free(vResponse->uBuffer);
+        delete[] vResponse->uBuffer;
     }
-    free(vResponse);
+    delete vResponse;
 
     if(vReqHeader->uBuffSize != 0){
-        free(vReqHeader->uBuffer);
+        delete[] vReqHeader->uBuffer;
     }
-    free(vReqHeader);
+    delete vReqHeader;
 
     if(vRespHeader->uBuffSize != 0){
-        free(vRespHeader->uBuffer);
+        delete[] vRespHeader->uBuffer;
     }
-    free(vRespHeader);
+    delete vRespHeader;
 }
 
 void ConnectionContext::InitializeHTTPHeaderInfo() {
@@ -396,8 +397,6 @@ void ConnectionContext::ExpandBuffer(tBuffer * pBuffer, unsigned short pReqBytes
     char * temptr;
 
     if(pReqBytes > pBuffer->uBuffSize){
-
-        //temptr = (char *)calloc(pReqBytes, sizeof(char));
         char* temptr = new char[pReqBytes]();
         if (!temptr) {
             printf("[ExpandBuffer] ERROR: Out of memory while expanding buffer to %u bytes\n", pReqBytes);
@@ -406,7 +405,7 @@ void ConnectionContext::ExpandBuffer(tBuffer * pBuffer, unsigned short pReqBytes
 
         if(pBuffer->uBuffer){
             memcpy(temptr, pBuffer->uBuffer, pBuffer->uUtilSize);
-            delete pBuffer->uBuffer;
+            delete[] pBuffer->uBuffer;
         }else{
             pBuffer->uUtilSize = 0;
         }

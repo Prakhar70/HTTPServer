@@ -31,7 +31,7 @@ void TAsyncHndlr::Initialize(TReqProcessor* pReqProcessor, uint16_t pThreadCount
     vPrepareShutdownEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     // 5. Prepare shared thread data
-    vThData = new tThreadData();//(tThreadData*)calloc(1, sizeof(tThreadData));
+    vThData = new tThreadData();
     vThData->uEvent[0] = vReqThStartEvent;
     vThData->uEvent[1] = vReqThStopEvent;
     vThData->uEvent[2] = vPrepareShutdownEvent;
@@ -52,6 +52,9 @@ void TAsyncHndlr::Finalize() {
 
     FinalizeThreadPoolHndlr();
 
+    delete vThData;
+    vThData = nullptr;
+    
     delete vReqQueue;
     vReqQueue = nullptr;
 }
@@ -66,7 +69,7 @@ DWORD WINAPI TAsyncHndlr::ProcessQRequest(LPVOID lpParam) {
         if (wr == WAIT_OBJECT_0) {
             void* cc = nullptr;
             while ((cc = async->GetRequest()) != nullptr) {
-                auto* tpdata = new tThreadPoolData();//(tThreadPoolData*)calloc(1, sizeof(tThreadPoolData));
+                auto* tpdata = new tThreadPoolData();
                 tpdata->uProcessor = thdata->uReqProcessor;
                 tpdata->uData = cc;
 
