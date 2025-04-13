@@ -1,12 +1,12 @@
 #include "connection_context.hpp"
 
-ConnectionContext::ConnectionContext(const ConnectionInfo& info)
+ConnectionContext::ConnectionContext(const ConnectionInfo& info, LLMServer * pServer)
     : clientInfo(info),
       isKeepAlive(true),
       vIOMsgState(eMsgState::STATE_MSG_START),
       vHTTPHeaderLen(0),
       vMsgSize(0),
-      vExHSComplete(false)
+      vServer(pServer)
 {
     // Allocate request buffer 
     vRequest = new tBuffer();
@@ -164,19 +164,31 @@ bool ConnectionContext::ProcessMessage(LLMServer * pServer){
     return ProcessHTTPMessage(pServer);
 }
 
-bool ConnectionContext::IsExHSComplete(){
-    return vExHSComplete;
+bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
+
+    if (!g_AsyncHndlr) {
+        printf("[ConnectionContext] ERROR: g_AsyncHndlr not initialized\n");
+        return false;
+    }
+
+    g_AsyncHndlr->Write(this);
+
+    vIOMsgState = eMsgState::STATE_AWAITING_RESPONSE;
+    return false;
 }
 
-bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
-    bool retval = true;
+tBuffer* ConnectionContext::GetResponseHeader(){
+    return vRespHeader;
+}
+tBuffer* ConnectionContext::GetResponseBody(){
+    return vResponse;
+}
+void ConnectionContext::ResponseReady(){
+    PostQueuedCompletionStatus(vServer->GetIOCP(), 0, reinterpret_cast<ULONG_PTR>(this), NULL);
+}
 
-    
-    vIOMsgState = eMsgState::STATE_AWAITING_RESPONSE;
-    
-    return false;
-    
-
+LLMServer* ConnectionContext::GetServer(){
+    return vServer;
 }
 
 bool ConnectionContext::RecvMessage(eMsgState &pCurState){

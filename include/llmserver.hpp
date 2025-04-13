@@ -25,9 +25,9 @@ public:
     bool KeepConnection() const;
     bool IsKeepAliveSet() const;
     eProtocol GetProtocol() const;
-    ConnectionContext* CreateConnectionContext(const ConnectionInfo& clientInfo);
+    ConnectionContext* CreateConnectionContext(const ConnectionInfo& clientInfo, LLMServer * pServer);
+    HANDLE GetIOCP() const;
     
-
 private:
     void SetAcceptNewConnection(bool state);
     bool InitializeBaseServer();

@@ -265,7 +265,7 @@ bool LLMServer::HandleAcceptEvent() {
     clientInfo.uCCId = vConnectionContextCount++;
 
     // Create connection context
-    cc = this->CreateConnectionContext(clientInfo);
+    cc = this->CreateConnectionContext(clientInfo, this);
 
     if (!cc) {
         
@@ -308,8 +308,12 @@ bool LLMServer::HandleAcceptEvent() {
 
 }
 
-ConnectionContext* LLMServer::CreateConnectionContext(const ConnectionInfo& clientInfo) {
-    return new ConnectionContext(clientInfo);
+ConnectionContext* LLMServer::CreateConnectionContext(const ConnectionInfo& clientInfo, LLMServer * pServer) {
+    return new ConnectionContext(clientInfo, pServer);
+}
+
+HANDLE LLMServer::GetIOCP() const{
+    return vIOCompletionPort;
 }
 
 HANDLE LLMServer::GetStopEvent() const {

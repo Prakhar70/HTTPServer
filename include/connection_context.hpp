@@ -2,6 +2,7 @@
 
 #include "commonstruct.hpp"
 #include "connection_info.hpp"
+#include "tasynchndlr.hpp" // gives you access to g_AsyncHndlr
 #include "llmserver.hpp"
 #include "macros.hpp"
 #include <vector>
@@ -13,7 +14,7 @@ class LLMServer;
 
 class ConnectionContext {
     public:
-        explicit ConnectionContext(const ConnectionInfo& info);
+        explicit ConnectionContext(const ConnectionInfo& info, LLMServer * pServer);
         ~ConnectionContext();
     
         const ConnectionInfo& GetClientInfo() const { return clientInfo; }
@@ -34,7 +35,10 @@ class ConnectionContext {
         bool RecvMessage(eMsgState &pCurState);
         bool ProcessMessage(LLMServer * pServer);
         bool ProcessHTTPMessage(LLMServer * pServer);
-        bool ConnectionContext::IsExHSComplete();
+        tBuffer* GetResponseHeader();
+        tBuffer* GetResponseBody();
+        LLMServer* GetServer();
+        void ResponseReady();
 
     private:
         ConnectionInfo clientInfo;
@@ -50,14 +54,14 @@ class ConnectionContext {
         DWORD vPrevIOBytes;
         DWORD vBytesTrnfs;
         WSABUF vWsabuf;
-        WSAOVERLAPPED vOverlapped;
+        WSAOVERLAPPED vOverlapped; 
         unsigned short vMsgSize;
         eReqRespType vReqRespType;
         unsigned long vHTTPHeaderLen;
         unsigned long vContentAlreadyRead;
         tHTTPHeaderInfo * vHTTPHeaderInfo;
         std::vector<std::pair<std::string, std::string>> vReqKeyValueList;
-        bool vExHSComplete;
+        LLMServer * vServer;
  };
 
  

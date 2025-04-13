@@ -7,6 +7,7 @@
 #include <windows.h>
 
 class TAsyncHndlr;
+extern TAsyncHndlr* g_AsyncHndlr;
 
 struct tThreadData {
     HANDLE uEvent[3]; // [0] start, [1] stop, [2] prepare shutdown

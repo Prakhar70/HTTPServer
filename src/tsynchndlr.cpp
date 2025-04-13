@@ -31,7 +31,7 @@ void TAsyncHndlr::Initialize(TReqProcessor* pReqProcessor, uint16_t pThreadCount
     vPrepareShutdownEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     // 5. Prepare shared thread data
-    vThData = (tThreadData*)calloc(1, sizeof(tThreadData));
+    vThData = new tThreadData();//(tThreadData*)calloc(1, sizeof(tThreadData));
     vThData->uEvent[0] = vReqThStartEvent;
     vThData->uEvent[1] = vReqThStopEvent;
     vThData->uEvent[2] = vPrepareShutdownEvent;
@@ -64,14 +64,13 @@ DWORD WINAPI TAsyncHndlr::ProcessQRequest(LPVOID lpParam) {
         DWORD wr = WaitForMultipleObjects(3, thdata->uEvent, FALSE, INFINITE);
 
         if (wr == WAIT_OBJECT_0) {
-            void* msg = nullptr;
-            while ((msg = async->GetRequest()) != nullptr) {
-                auto* tpdata = (tThreadPoolData*)calloc(1, sizeof(tThreadPoolData));
+            void* cc = nullptr;
+            while ((cc = async->GetRequest()) != nullptr) {
+                auto* tpdata = new tThreadPoolData();//(tThreadPoolData*)calloc(1, sizeof(tThreadPoolData));
                 tpdata->uProcessor = thdata->uReqProcessor;
-                tpdata->uData = ((VoidElem*)msg)->uInfo;
+                tpdata->uData = cc;
 
                 async->GetThreadPoolHndlr()->ExecuteRequest(tpdata);
-                delete (VoidElem*)msg;
             }
         }
         else if (wr == WAIT_OBJECT_0 + 1) {
@@ -91,3 +90,37 @@ void TAsyncHndlr::FinalizeThreadPoolHndlr() {
     delete vThreadPoolHndlr;
     vThreadPoolHndlr = nullptr;
 }
+
+void TAsyncHndlr::Write(void* pRequest) {
+    {
+        SyncWriteHold lock(&vAsyncSyncFlag); // ensure thread-safe
+        vReqQueue->Push(pRequest);
+    }
+    SetEvent(vReqThStartEvent); // wake dispatcher thread
+}
+
+void* TAsyncHndlr::GetRequest() {
+    void* msg = nullptr;
+    {
+        SyncWriteHold lock(&vAsyncSyncFlag);
+        vReqQueue->Pop(msg);
+    }
+    return msg;
+}
+void TAsyncHndlr::StartQProcessing() {
+    SetEvent(vReqThStartEvent);
+}
+void TAsyncHndlr::PauseQProcessing() {
+    ResetEvent(vReqThStartEvent); // optional, if you use pause/resume semantics
+}
+void TAsyncHndlr::ResumeQProcessing() {
+    SetEvent(vReqThStartEvent);
+}
+void TAsyncHndlr::StopQProcessing() {
+    SetEvent(vReqThStopEvent);
+}
+void TAsyncHndlr::StartPrepareForShutdown() {
+    SetEvent(vPrepareShutdownEvent);
+}
+
+

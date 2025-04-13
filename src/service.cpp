@@ -121,6 +121,7 @@ void RunAsConsoleFallback() {
     g_AsyncHndlr = &asyn_hdlr;
     
     g_AsyncHndlr->Initialize(new LLMReqProcessor(), 15);
+    
     g_ServerInstance = &server;
 
     g_ServerInstance->SetKeepAlive(true);

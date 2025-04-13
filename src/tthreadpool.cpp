@@ -1,7 +1,5 @@
 #include "tthreadpoolhandler.hpp"
 
-
-
 TThreadPoolHndlr::TThreadPoolHndlr()
     : vReqProcessThPool(nullptr)
 {}
