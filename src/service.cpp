@@ -19,7 +19,7 @@ void WINAPI ServiceCtrlHandler(DWORD ctrlCode);
 ////TODO-Comments
 
 
-void RunAsService() {
+void runAsService() {
     // Define the service table for SCM: name + entry function
     SERVICE_TABLE_ENTRY serviceTable[] = {
         { const_cast<LPTSTR>(TEXT("HTTPServer")), ServiceMain },
@@ -27,7 +27,7 @@ void RunAsService() {
     };
 
     if (!StartServiceCtrlDispatcher(serviceTable)) {
-        RunAsConsoleFallback();
+        runAsConsoleFallback();
     }
 }
 
@@ -100,7 +100,7 @@ void WINAPI ServiceCtrlHandler(DWORD ctrlCode) {
 }
 
 
-void RunAsConsoleFallback() {
+void runAsConsoleFallback() {
     printf("[INFO] Running as console app (fallback)\n");
 
     SetConsoleCtrlHandler([](DWORD ctrlType) -> BOOL {

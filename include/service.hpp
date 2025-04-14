@@ -1,4 +1,5 @@
 // service.hpp
+
 #pragma once
 #include "LLMServer.hpp"
 #include "macros.hpp"
@@ -7,5 +8,5 @@
 #include <cstdio>
 #include <windows.h>
 
-void RunAsService();
-void RunAsConsoleFallback();
+void runAsService();
+void runAsConsoleFallback();
