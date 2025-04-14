@@ -22,7 +22,7 @@ void WINAPI ServiceCtrlHandler(DWORD ctrlCode);
 void RunAsService() {
     // Define the service table for SCM: name + entry function
     SERVICE_TABLE_ENTRY serviceTable[] = {
-        { const_cast<LPTSTR>(TEXT("OfflineAIService")), ServiceMain },
+        { const_cast<LPTSTR>(TEXT("HTTPServer")), ServiceMain },
         { nullptr, nullptr }
     };
 
@@ -33,7 +33,7 @@ void RunAsService() {
 
 void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
 
-    g_StatusHandle = RegisterServiceCtrlHandler(TEXT("OfflineAIService"), ServiceCtrlHandler);
+    g_StatusHandle = RegisterServiceCtrlHandler(TEXT("HTTPServer"), ServiceCtrlHandler);
     if (!g_StatusHandle) return;
 
     g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
@@ -53,9 +53,9 @@ void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
     //It’s a polite and expected handshake with Windows — "starting now..." → "all set!"
 
-    g_ServerInstance = new LLMServer(3000);
+    g_ServerInstance = new LLMServer(PORT);
     g_AsyncHndlr = new TAsyncHndlr();
-    g_AsyncHndlr->Initialize(new LLMReqProcessor(), 15);
+    g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
 
     g_ServerInstance->SetKeepAlive(true);
 
@@ -117,11 +117,11 @@ void RunAsConsoleFallback() {
         return FALSE;
         }, TRUE);
 
-    LLMServer server(3000);
+    LLMServer server(PORT);
     TAsyncHndlr asyn_hdlr;
     g_AsyncHndlr = &asyn_hdlr;
     
-    g_AsyncHndlr->Initialize(new LLMReqProcessor(), 15);
+    g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
 
     g_ServerInstance = &server;
 

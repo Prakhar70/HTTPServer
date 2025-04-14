@@ -1,7 +1,7 @@
 #include "llmserver.hpp"
 
 LLMServer::LLMServer(USHORT port)
-    : vIsAcceptNewConns(true), vStopEvent(nullptr), vIOCompletionPort(nullptr), vThreadCount(15), vConnectionContextCount(0), vKeepConnection(true), vPerformKeepAlive(false) {
+    : vIsAcceptNewConns(true), vStopEvent(nullptr), vIOCompletionPort(nullptr), vThreadCount(IOTHREADS_COUNT), vConnectionContextCount(0), vKeepConnection(true), vPerformKeepAlive(false) {
     vSocketMgr = new SocketManager(port);
 }
 
@@ -52,7 +52,7 @@ void LLMServer::CleanupThreadPool() {
         return;
     }
 
-    for (DWORD i = 0; i < vThreadCount; ++i) {
+    for (WORD i = 0; i < vThreadCount; ++i) {
         if (!PostQueuedCompletionStatus(vIOCompletionPort, 0, NULL, NULL)) {
             DWORD error = WSAGetLastError();
             printf("[LLMServer] PostQueuedCompletionStatus failed: %lu\n", error);
@@ -103,7 +103,7 @@ bool LLMServer::Initialize() {
 }
 
 bool LLMServer::CreateThreadPool() {
-    for (DWORD i = 0; i < vThreadCount; ++i) {
+    for (WORD i = 0; i < vThreadCount; ++i) {
         vThreads.emplace_back(&LLMServer::ProcessClientRequest, this);
     }
     return true;

@@ -44,7 +44,7 @@ private:
     HANDLE vStopEvent;
     HANDLE vIOCompletionPort;
 
-    DWORD vThreadCount;
+    WORD vThreadCount;
     std::vector<std::thread> vThreads;
     ULONG vConnectionContextCount;
 
