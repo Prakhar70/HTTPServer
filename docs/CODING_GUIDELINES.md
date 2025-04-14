@@ -12,7 +12,7 @@ This project aims to be a high-performance, production-grade HTTP server on Wind
 | Function     | camelCase        | `initializeServer()`, `runLoop()` |
 | Local Var    | camelCase        | `bufferSize`, `isReady`        |
 | Member Var   | `m_` prefix      | `m_threadPool`, `m_context`    |
-| Global Var   | `g_` prefix      | `g_ServerInstance`             |
+| Global Var   | `g_` prefix      | `g_serverInstance`             |
 | Constant     | UPPER_CASE       | `DEFAULT_PORT`, `MAX_THREADS`  |
 | Pointer Var  | Optional `Ptr`   | `contextPtr`, `sockPtr`        |
 | Enum         | PascalCase Type, UPPER_CASE values | `enum class State { IDLE, RUNNING }` |

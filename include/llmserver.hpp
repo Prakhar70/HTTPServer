@@ -23,7 +23,7 @@ public:
     bool KeepConnection(bool pState);
     bool KeepConnection() const;
     bool IsKeepAliveSet() const;
-    eProtocol GetProtocol() const;
+    Protocol GetProtocol() const;
     ConnectionContext* CreateConnectionContext(const ConnectionInfo& clientInfo, LLMServer * pServer);
     HANDLE GetIOCP() const;
     

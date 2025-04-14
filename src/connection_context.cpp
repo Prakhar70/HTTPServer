@@ -3,12 +3,12 @@
 ConnectionContext::ConnectionContext(const ConnectionInfo& info, LLMServer * pServer)
     : clientInfo(info),
       isKeepAlive(true),
-      vIOMsgState(eMsgState::STATE_MSG_START),
+      vIOMsgState(MsgState::STATE_MSG_START),
       vHTTPHeaderLen(0),
       vMsgSize(0),
       vServer(pServer),
       vWsabuf{},
-      vReqRespType(eReqRespType::REQUEST),
+      vReqRespType(ReqRespType::REQUEST),
       vBytesTrnfs(0),
     vContentAlreadyRead(0),
     vOverlapped{},
@@ -155,9 +155,9 @@ void ConnectionContext::UpdateHeaderInfo() {
             }
         } else if (lowerKey == "connection") {
             if (lowerValue == "keep-alive") {
-                vHTTPHeaderInfo->uKeepAlive = eTrival::True;
+                vHTTPHeaderInfo->uKeepAlive = Trival::True;
             } else {
-                vHTTPHeaderInfo->uKeepAlive = eTrival::False;
+                vHTTPHeaderInfo->uKeepAlive = Trival::False;
                 SetKeepConnectionAlive(false);
             }
         }
@@ -170,12 +170,12 @@ bool ConnectionContext::ProcessMessage(LLMServer * pServer){
     return ProcessHTTPMessage(pServer);
 }
 
-bool ConnectionContext::SendHeader(eMsgState& pCurState){
+bool ConnectionContext::SendHeader(MsgState& pCurState){
     vBytesTrnfs += vPrevIOBytes;
     vPrevIOBytes =0;
     bool result = false;
     if(vMsgSize == vBytesTrnfs){
-        vIOMsgState = eMsgState::STATE_SEND_MESSAGE;
+        vIOMsgState = MsgState::STATE_SEND_MESSAGE;
         pCurState=vIOMsgState;
         vMsgSize = vResponse->uUtilSize;
         vBytesTrnfs = 0;
@@ -186,18 +186,18 @@ bool ConnectionContext::SendHeader(eMsgState& pCurState){
     vWsabuf.buf=vRespHeader->uBuffer + vBytesTrnfs;
     result = SendMessageOnSocket();
     if(result == false){
-        vIOMsgState = eMsgState::STATE_IO_ERROR;
-        pCurState=eMsgState::STATE_IO_ERROR;
+        vIOMsgState = MsgState::STATE_IO_ERROR;
+        pCurState=MsgState::STATE_IO_ERROR;
     }
     return false;
 } 
 
-bool ConnectionContext::SendBody(eMsgState& pCurState){
+bool ConnectionContext::SendBody(MsgState& pCurState){
     vBytesTrnfs += vPrevIOBytes;
     vPrevIOBytes =0;
     bool result = false;
     if(vMsgSize == vBytesTrnfs){
-        vIOMsgState = eMsgState::STATE_MSG_END;
+        vIOMsgState = MsgState::STATE_MSG_END;
         pCurState=vIOMsgState;
         return true;
     }
@@ -205,8 +205,8 @@ bool ConnectionContext::SendBody(eMsgState& pCurState){
     vWsabuf.buf=vResponse->uBuffer + vBytesTrnfs;
     result = SendMessageOnSocket();
     if(result == false){
-        vIOMsgState = eMsgState::STATE_IO_ERROR;
-        pCurState=eMsgState::STATE_IO_ERROR;
+        vIOMsgState = MsgState::STATE_IO_ERROR;
+        pCurState=MsgState::STATE_IO_ERROR;
     }
     return false;
 }  
@@ -244,7 +244,7 @@ bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
 
     g_AsyncHndlr->Write(this);
 
-    vIOMsgState = eMsgState::STATE_AWAITING_RESPONSE;
+    vIOMsgState = MsgState::STATE_AWAITING_RESPONSE;
     return false;
 }
 
@@ -258,7 +258,7 @@ void ConnectionContext::ResponseReady(){
     vMsgSize = vRespHeader->uUtilSize;
     vBytesTrnfs = 0;
     vPrevIOBytes = 0;
-    SetState(eMsgState::STATE_SEND_HEADER);
+    SetState(MsgState::STATE_SEND_HEADER);
     PostQueuedCompletionStatus(vServer->GetIOCP(), 0, reinterpret_cast<ULONG_PTR>(this), NULL);
 }
 
@@ -266,7 +266,7 @@ LLMServer* ConnectionContext::GetServer(){
     return vServer;
 }
 
-bool ConnectionContext::RecvMessage(eMsgState &pCurState){
+bool ConnectionContext::RecvMessage(MsgState &pCurState){
     bool result;
 
     vBytesTrnfs += vPrevIOBytes;
@@ -274,7 +274,7 @@ bool ConnectionContext::RecvMessage(eMsgState &pCurState){
 
     if(vMsgSize == vBytesTrnfs){
 
-        vIOMsgState = eMsgState::STATE_PROCESS_MESSAGE;
+        vIOMsgState = MsgState::STATE_PROCESS_MESSAGE;
         pCurState = vIOMsgState;
 
         vRequest->uUtilSize = vBytesTrnfs;
@@ -295,8 +295,8 @@ bool ConnectionContext::RecvMessage(eMsgState &pCurState){
     result = ReadMessageOnSocket();
 
     if(result == false){
-        vIOMsgState = eMsgState::STATE_IO_ERROR;
-        pCurState = eMsgState::STATE_MSG_END;
+        vIOMsgState = MsgState::STATE_IO_ERROR;
+        pCurState = MsgState::STATE_MSG_END;
     }
 
     return false;
@@ -312,22 +312,22 @@ void ConnectionContext::ResetHTTPHeaderInfo(){
     vHTTPHeaderInfo->uUnicode = false;
     vHTTPHeaderInfo->uCompressResp = false;
     vHTTPHeaderInfo->uContentLen = 0;
-    vHTTPHeaderInfo->uKeepAlive = eTrival::UNKNOWN;
+    vHTTPHeaderInfo->uKeepAlive = Trival::UNKNOWN;
 }
 
 void ConnectionContext::SetKeepConnectionAlive(bool pState){
     isKeepAlive = pState;
 }
 
-void ConnectionContext::SetState(eMsgState pState){
+void ConnectionContext::SetState(MsgState pState){
     
-    if(vIOMsgState == eMsgState::STATE_IO_ERROR){
+    if(vIOMsgState == MsgState::STATE_IO_ERROR){
         //TODO : add exception here
         printf("Debug error\n");
         return;
     }
-    if(vIOMsgState == eMsgState::STATE_MSG_END && pState == eMsgState::STATE_MSG_END){
-        vIOMsgState = eMsgState::STATE_IO_ERROR;
+    if(vIOMsgState == MsgState::STATE_MSG_END && pState == MsgState::STATE_MSG_END){
+        vIOMsgState = MsgState::STATE_IO_ERROR;
     }else{
         vIOMsgState = pState;
     }
@@ -342,7 +342,7 @@ void ConnectionContext::ReIntializeBufs(LLMServer * pServer){
 
     RefreshReqResBuffer(pServer);
 
-    vIOMsgState = eMsgState::STATE_READ_HEADER;
+    vIOMsgState = MsgState::STATE_READ_HEADER;
 
     vMsgSize = INITIAL_HEADER_LENGTH - 1;
 }
@@ -428,7 +428,7 @@ char * ConnectionContext::FindEndOfHTTPHeader(){
     return tempbuf;
 }
 
-bool ConnectionContext::ReadHTTPHeader(eMsgState &pCurState){
+bool ConnectionContext::ReadHTTPHeader(MsgState &pCurState){
 
     char * endofheader;
 
@@ -446,7 +446,7 @@ bool ConnectionContext::ReadHTTPHeader(eMsgState &pCurState){
         vContentAlreadyRead = vBytesTrnfs - vHTTPHeaderLen;
 
         vReqHeader->uUtilSize = vBytesTrnfs;
-        vIOMsgState = eMsgState::STATE_PROCESS_HEADER;
+        vIOMsgState = MsgState::STATE_PROCESS_HEADER;
         pCurState = vIOMsgState;
         return true;
     }
@@ -466,8 +466,8 @@ bool ConnectionContext::ReadHTTPHeader(eMsgState &pCurState){
     res = ReadMessageOnSocket();
 
     if(res == false){
-        vIOMsgState = eMsgState::STATE_IO_ERROR;
-        pCurState = eMsgState::STATE_MSG_END;
+        vIOMsgState = MsgState::STATE_IO_ERROR;
+        pCurState = MsgState::STATE_MSG_END;
     }
 
     return false;
@@ -485,7 +485,7 @@ bool ConnectionContext::ProcessHTTPHeader(){
 
     if(!vMsgSize){
         ExpandBuffer(vRequest, REQUEST_BUFFER_LENGTH);
-        vIOMsgState = eMsgState::STATE_PROCESS_MESSAGE;
+        vIOMsgState = MsgState::STATE_PROCESS_MESSAGE;
         vRequest->uUtilSize = 0;
     }else{
         if(vMsgSize < vContentAlreadyRead){
@@ -497,27 +497,27 @@ bool ConnectionContext::ProcessHTTPHeader(){
             memcpy(vRequest->uBuffer,vReqHeader+vHTTPHeaderLen, vContentAlreadyRead);
             vBytesTrnfs = vContentAlreadyRead;
         }
-        vIOMsgState = eMsgState::STATE_RECV_MESSAGE;
+        vIOMsgState = MsgState::STATE_RECV_MESSAGE;
     }
     return true;
 };
 
-eMsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
+MsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
     
-    eMsgState curstate;
+    MsgState curstate;
     bool rc = false;
 
     //TODO:UnderstandingPending
     if(!clientInfo.uIsSocketActive){
         //TODO:log error "connection context is not active as it is already shutdown
-        return eMsgState::STATE_IO_ERROR;
+        return MsgState::STATE_IO_ERROR;
     }
 
     //TODO:UnderstandingPending
-    if(vIOMsgState == eMsgState::STATE_MSG_UNKNOWN){
+    if(vIOMsgState == MsgState::STATE_MSG_UNKNOWN){
         //TODO debug error
         Close();
-        return eMsgState::STATE_IO_ERROR;
+        return MsgState::STATE_IO_ERROR;
     
     }   
 
@@ -526,44 +526,44 @@ eMsgState ConnectionContext::ProcessIO(LLMServer* pServer, DWORD pBytes){
 
     do{
         switch(vIOMsgState){
-            case eMsgState::STATE_MSG_START: //1
+            case MsgState::STATE_MSG_START: //1
                 ReIntializeBufs (pServer);
                 curstate = vIOMsgState;
                 rc = true;
                 break;
 
-            case eMsgState::STATE_READ_HEADER://4
+            case MsgState::STATE_READ_HEADER://4
                 rc = ReadHTTPHeader(curstate);
                 break;
             
-            case eMsgState::STATE_PROCESS_HEADER://5
+            case MsgState::STATE_PROCESS_HEADER://5
                 rc = ProcessHTTPHeader();
                 curstate = vIOMsgState;
                 break;
             
-            case eMsgState::STATE_RECV_MESSAGE://6
+            case MsgState::STATE_RECV_MESSAGE://6
                 rc = RecvMessage(curstate);
                 break;
 
-            case eMsgState::STATE_PROCESS_MESSAGE://7
+            case MsgState::STATE_PROCESS_MESSAGE://7
                 rc = ProcessMessage(pServer);
                 curstate = vIOMsgState;
                 break;
 
-            case eMsgState::STATE_SEND_HEADER://8
+            case MsgState::STATE_SEND_HEADER://8
                 rc = SendHeader(curstate);
                 break;
 
-            case eMsgState::STATE_SEND_MESSAGE://9
+            case MsgState::STATE_SEND_MESSAGE://9
                 rc = SendBody(curstate);
                 break;
 
-            case eMsgState::STATE_MSG_END://10
+            case MsgState::STATE_MSG_END://10
                 curstate = vIOMsgState;
                 rc = false;
                 break;
-            case eMsgState::STATE_AWAITING_RESPONSE://11
-                curstate = eMsgState::STATE_AWAITING_RESPONSE;
+            case MsgState::STATE_AWAITING_RESPONSE://11
+                curstate = MsgState::STATE_AWAITING_RESPONSE;
                 rc = false;
                 break;
         }

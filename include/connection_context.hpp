@@ -20,28 +20,28 @@ class ConnectionContext {
     
         const ConnectionInfo& GetClientInfo() const { return clientInfo; }
         void SetKeepConnectionAlive(bool pState);
-        void SetState(eMsgState pState);
-        eMsgState ProcessIO(LLMServer* pServer, DWORD pBytes);
+        void SetState(MsgState pState);
+        MsgState ProcessIO(LLMServer* pServer, DWORD pBytes);
         bool Close();
         void ReIntializeBufs(LLMServer *pServer);
         void RefreshReqResBuffer(LLMServer* pServer);
         bool ReadMessageOnSocket();
-        bool ReadHTTPHeader(eMsgState &pCurState);
+        bool ReadHTTPHeader(MsgState &pCurState);
         void ExpandBuffer(tBuffer * pBuffer, unsigned short pReqBytes);
         char * FindEndOfHTTPHeader();
         bool ProcessHTTPHeader();
         void ResetHTTPHeaderInfo();
         void InitializeHTTPHeaderInfo();
         void UpdateHeaderInfo();
-        bool RecvMessage(eMsgState &pCurState);
+        bool RecvMessage(MsgState &pCurState);
         bool ProcessMessage(LLMServer * pServer);
         bool ProcessHTTPMessage(LLMServer * pServer);
         tBuffer* GetResponseHeader();
         tBuffer* GetResponseBody();
         LLMServer* GetServer();
         void ResponseReady();
-        bool SendHeader(eMsgState& pCurState);
-        bool SendBody(eMsgState& pCurState);
+        bool SendHeader(MsgState& pCurState);
+        bool SendBody(MsgState& pCurState);
         bool SendMessageOnSocket();
 
 
@@ -55,13 +55,13 @@ class ConnectionContext {
         tBuffer * vReqHeader;
         tBuffer * vRespHeader;
 
-        eMsgState vIOMsgState;
+        MsgState vIOMsgState;
         DWORD vPrevIOBytes;
         DWORD vBytesTrnfs;
         WSABUF vWsabuf;
         WSAOVERLAPPED vOverlapped; 
         unsigned short vMsgSize;
-        eReqRespType vReqRespType;
+        ReqRespType vReqRespType;
         unsigned long vHTTPHeaderLen;
         unsigned long vContentAlreadyRead;
         tHTTPHeaderInfo * vHTTPHeaderInfo;

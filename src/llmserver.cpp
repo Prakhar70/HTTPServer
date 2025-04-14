@@ -153,13 +153,13 @@ void LLMServer::ProcessClientRequest(LLMServer* pThis) {
 
         //case: graceful closure of client
         if(rc == 0 || (cc && !bytes && olap)){
-            cc->SetState(eMsgState::STATE_MSG_END);
+            cc->SetState(MsgState::STATE_MSG_END);
         }
 
-        eMsgState result;
+        MsgState result;
         result = cc->ProcessIO(pThis, bytes);
 
-        if(result == eMsgState::STATE_MSG_END){
+        if(result == MsgState::STATE_MSG_END){
             if(cc->Close() == true){
                 //TODO : close connect
                 delete cc;
@@ -222,8 +222,8 @@ void LLMServer::SetKeepAlive(bool pState){
     vPerformKeepAlive = pState;
 }
 
-eProtocol LLMServer::GetProtocol() const{
-    return eProtocol::HTTP_PROTOCOL;
+Protocol LLMServer::GetProtocol() const{
+    return Protocol::HTTP_PROTOCOL;
 }
 
 bool LLMServer::IsKeepAliveSet() const{

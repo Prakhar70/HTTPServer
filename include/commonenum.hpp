@@ -1,7 +1,7 @@
 //commonenum.hpp
 #pragma once
 
-enum class eMsgState {
+enum class MsgState {
     STATE_MSG_UNKNOWN = 0,
     STATE_MSG_START,
     STATE_READ_PROTOCOL,
@@ -17,26 +17,19 @@ enum class eMsgState {
     STATE_IO_ERROR
 };
 
-enum class eProtocol {
+enum class Protocol {
     UNKNOWN_PROTOCOL = -1,
     HTTP_PROTOCOL = 0,
     HTTPS_PROTOCOL = 1
 };
 
-enum class eReqRespType{
+enum class ReqRespType{
     REQUEST = 1,
     RESPONSE,
 };
 
-enum class eTrival{
+enum class Trival{
     UNKNOWN = 0,
     True = 1,
     False = 2
-};
-
-enum class eHTTPAuthType{
-    HAT_UNKNOWN = 0,
-    HAT_BASIC,
-    HAT_DIGEST,
-    HAT_NTLM
 };

@@ -22,12 +22,11 @@ struct tHTTPHeaderInfo {
     bool uContentLenPresent = false;
     unsigned long uContentLen = 0;
 
-    eTrival uKeepAlive = eTrival::UNKNOWN;
+    Trival uKeepAlive = Trival::UNKNOWN;
 
     std::string uCookie;
     std::string uCookie1;
 
-    eHTTPAuthType uAuthType = eHTTPAuthType::HAT_UNKNOWN;
     unsigned long uUnauthCount = 0;
 
     bool uCompressResp = false;
