@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "commonenum.hpp"
+#include "common_enum.hpp"
 
 struct tBuffer{
     char * uBuffer;

@@ -10,3 +10,5 @@
 
 void runAsService();
 void runAsConsoleFallback();
+void WINAPI serviceMain(DWORD argc, LPTSTR* argv);
+void WINAPI serviceCtrlHandler(DWORD ctrlCode);

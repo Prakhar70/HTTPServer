@@ -1,6 +1,6 @@
 #pragma once
 
-#include "commonstruct.hpp"
+#include "common_struct.hpp"
 #include "connection_info.hpp"
 #include "tasynchndlr.hpp" // gives you access to g_AsyncHndlr
 #include "llmserver.hpp"

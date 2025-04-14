@@ -1,4 +1,4 @@
-//commonenum.hpp
+//common_enum.hpp
 #pragma once
 
 enum class MsgState {

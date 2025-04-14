@@ -13,16 +13,10 @@ LLMServer* g_ServerInstance = nullptr;
 std::thread g_ServerThread;
 TAsyncHndlr* g_AsyncHndlr = nullptr;
 
-
-void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
-void WINAPI ServiceCtrlHandler(DWORD ctrlCode);
-////TODO-Comments
-
-
 void runAsService() {
     // Define the service table for SCM: name + entry function
     SERVICE_TABLE_ENTRY serviceTable[] = {
-        { const_cast<LPTSTR>(TEXT("HTTPServer")), ServiceMain },
+        { const_cast<LPTSTR>(TEXT("HTTPServer")), serviceMain },
         { nullptr, nullptr }
     };
 
@@ -31,9 +25,9 @@ void runAsService() {
     }
 }
 
-void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
+void WINAPI serviceMain(DWORD argc, LPTSTR* argv) {
 
-    g_StatusHandle = RegisterServiceCtrlHandler(TEXT("HTTPServer"), ServiceCtrlHandler);
+    g_StatusHandle = RegisterServiceCtrlHandler(TEXT("HTTPServer"), serviceCtrlHandler);
     if (!g_StatusHandle) return;
 
     g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
@@ -83,7 +77,7 @@ void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
 }
 
-void WINAPI ServiceCtrlHandler(DWORD ctrlCode) {
+void WINAPI serviceCtrlHandler(DWORD ctrlCode) {
     switch (ctrlCode) {
         case SERVICE_CONTROL_STOP:
             g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;

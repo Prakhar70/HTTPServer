@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tthreader.hpp"  // Your thread pool
-#include "commonstruct.hpp" // Include the header where tThreadPoolData is defined
+#include "common_struct.hpp" // Include the header where tThreadPoolData is defined
 #include "llm_reqprocessor.hpp"
 
 #include <cstdint>
