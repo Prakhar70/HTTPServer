@@ -2,7 +2,7 @@
 
 #include "tthreader.hpp"  // Your thread pool
 #include "commonstruct.hpp" // Include the header where tThreadPoolData is defined
-#include "LLMReqProcessor.hpp"
+#include "llm_reqprocessor.hpp"
 
 #include <cstdint>
 #include <cassert>

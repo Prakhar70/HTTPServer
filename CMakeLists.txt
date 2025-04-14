@@ -33,7 +33,7 @@ add_executable(HTTPServer
     src/service.cpp
     src/socket_manager.cpp
     src/tasynchndlr.cpp
-    src/LLMReqProcessor.cpp
+    src/llm_reqprocessor.cpp
     src/tthreadpool.cpp
 )
 
