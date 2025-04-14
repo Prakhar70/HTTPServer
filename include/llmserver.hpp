@@ -15,6 +15,8 @@ class ConnectionContext;
 class LLMServer {
 public:
     LLMServer(USHORT port);
+    static LLMServer& Instance(USHORT port);
+    static LLMServer& Instance(); // No port after first init
     bool Initialize();
     void RunMainLoop();  // actual server logic
     HANDLE GetStopEvent() const;
@@ -52,5 +54,6 @@ private:
     
     bool vPerformKeepAlive;
     bool vKeepConnection;
-
+    static LLMServer* s_instance;
+    static USHORT s_initPort;
 };

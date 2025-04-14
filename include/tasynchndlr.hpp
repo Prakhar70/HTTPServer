@@ -8,6 +8,7 @@
 #include <windows.h>
 
 class TAsyncHndlr;
+
 extern TAsyncHndlr* g_AsyncHndlr;
 
 struct tThreadData {

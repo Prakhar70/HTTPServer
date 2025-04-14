@@ -8,7 +8,6 @@ SERVICE_STATUS g_ServiceStatus = {};
 SERVICE_STATUS_HANDLE g_StatusHandle = nullptr;
 
 // Global pointers to server and async handler used across control flow
-LLMServer* g_ServerInstance = nullptr;
 std::thread g_ServerThread;
 TAsyncHndlr* g_AsyncHndlr = nullptr;
 
@@ -44,30 +43,28 @@ void WINAPI serviceMain(DWORD argc, LPTSTR* argv) {
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
     //It’s a polite and expected handshake with Windows — "starting now..." → "all set!"
 
-    g_ServerInstance = new LLMServer(PORT);
+    LLMServer& server = LLMServer::Instance(PORT);
 
     g_AsyncHndlr = new TAsyncHndlr();
     g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
 
-    g_ServerInstance->SetKeepAlive(true);
+    server.SetKeepAlive(true);
 
-    if (!g_ServerInstance->Initialize()) {
+    if (!server.Initialize()) {
         printf("[Service] Initialization failed.\n");
         return;
     }
 
-    g_ServerThread = std::thread([]() {
-        g_ServerInstance->RunMainLoop();
+    g_ServerThread = std::thread([&server]() {
+        server.RunMainLoop();
     });
 
-    WaitForSingleObject(g_ServerInstance->GetStopEvent(), INFINITE);
+    WaitForSingleObject(server.GetStopEvent(), INFINITE);
 
     if (g_ServerThread.joinable()) {
         g_ServerThread.join();
     }
 
-    delete g_ServerInstance;
-    g_ServerInstance = nullptr;
     delete g_AsyncHndlr;
     g_AsyncHndlr = nullptr;
 
@@ -81,9 +78,7 @@ void WINAPI serviceCtrlHandler(DWORD ctrlCode) {
             g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
             SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
 
-            if (g_ServerInstance) {
-                SetEvent(g_ServerInstance->GetStopEvent());
-            }
+            SetEvent(LLMServer::Instance().GetStopEvent());
             break;
 
         default:
@@ -100,32 +95,29 @@ void runAsConsoleFallback() {
             ctrlType == CTRL_BREAK_EVENT || ctrlType == CTRL_LOGOFF_EVENT || ctrlType == CTRL_SHUTDOWN_EVENT) {
             printf("[Console] Shutdown signal received (Ctrl+C or window close).\n");
 
-            if (g_ServerInstance) {
-                SetEvent(g_ServerInstance->GetStopEvent());
-            }
-
+            SetEvent(LLMServer::Instance().GetStopEvent());
             return TRUE;
         }
         return FALSE;
         }, TRUE);
 
-    LLMServer server(PORT);
     TAsyncHndlr asyn_hdlr;
     g_AsyncHndlr = &asyn_hdlr;
     
     g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
 
-    g_ServerInstance = &server;
+    LLMServer& server = LLMServer::Instance(PORT);
+    
 
-    g_ServerInstance->SetKeepAlive(true);
+    server.SetKeepAlive(true);
 
     if (!server.Initialize()) {
         printf("[Console] Initialization failed.\n");
         return;
     }
 
-    std::thread serverThread([]() {
-        g_ServerInstance->RunMainLoop();
+    std::thread serverThread([&server]() {
+        server.RunMainLoop();
         });
 
     WaitForSingleObject(server.GetStopEvent(), INFINITE);
@@ -133,8 +125,7 @@ void runAsConsoleFallback() {
     if (serverThread.joinable()) {
         serverThread.join();
     }
-
-    g_ServerInstance = nullptr;
+    
     g_AsyncHndlr = nullptr;
     printf("[Console] Shutdown complete. Exiting.\n");
     exit(0);

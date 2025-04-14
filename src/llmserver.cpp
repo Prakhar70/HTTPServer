@@ -1,5 +1,8 @@
 #include "llmserver.hpp"
 
+LLMServer* LLMServer::s_instance = nullptr;
+USHORT LLMServer::s_initPort = 0;
+
 LLMServer::LLMServer(USHORT port)
     : vIsAcceptNewConns(true),
     vStopEvent(nullptr),
@@ -10,6 +13,25 @@ LLMServer::LLMServer(USHORT port)
     vPerformKeepAlive(false) {
     vSocketMgr = new SocketManager(port);
 }
+
+LLMServer& LLMServer::Instance(USHORT port) {
+    if (!s_instance) {
+        s_instance = new LLMServer(port);
+        s_initPort = port;
+    } else if (port != s_initPort) {
+        printf("[LLMServer] Warning: Instance already initialized with port %d. Ignoring new value %d.\n", s_initPort, port);
+    }
+    return *s_instance;
+}
+
+LLMServer& LLMServer::Instance() {
+    if (!s_instance) {
+        printf("[LLMServer] FATAL: Instance() called before initialization.\n");
+        std::terminate();
+    }
+    return *s_instance;
+}
+
 
 bool LLMServer::InitializeBaseServer() {
 
