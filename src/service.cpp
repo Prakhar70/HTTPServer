@@ -1,11 +1,14 @@
 // service.cpp
-#include "service.hpp"
 
-// Windows service state
+#include "service.hpp"
+//TODO-Comments
+
 SERVICE_STATUS g_ServiceStatus = {};
+
+// Service status structure updated by SCM calls
 SERVICE_STATUS_HANDLE g_StatusHandle = nullptr;
 
-// Global server instance and server thread
+// Global pointers to server and async handler used across control flow
 LLMServer* g_ServerInstance = nullptr;
 std::thread g_ServerThread;
 TAsyncHndlr* g_AsyncHndlr = nullptr;
@@ -13,12 +16,13 @@ TAsyncHndlr* g_AsyncHndlr = nullptr;
 
 void WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
 void WINAPI ServiceCtrlHandler(DWORD ctrlCode);
-// These function  will be useful inside this cpp file only hence they are declared here not in service.hpp
+////TODO-Comments
 
 
 void RunAsService() {
+    // Define the service table for SCM: name + entry function
     SERVICE_TABLE_ENTRY serviceTable[] = {
-        { const_cast<LPSTR>("OfflineAIService"), ServiceMain },
+        { const_cast<LPTSTR>(TEXT("OfflineAIService")), ServiceMain },
         { nullptr, nullptr }
     };
 
@@ -29,7 +33,7 @@ void RunAsService() {
 
 void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
 
-    g_StatusHandle = RegisterServiceCtrlHandler("OfflineAIService", ServiceCtrlHandler);
+    g_StatusHandle = RegisterServiceCtrlHandler(TEXT("OfflineAIService"), ServiceCtrlHandler);
     if (!g_StatusHandle) return;
 
     g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
@@ -143,5 +147,3 @@ void RunAsConsoleFallback() {
     printf("[Console] Shutdown complete. Exiting.\n");
     exit(0);
 }
-
-
