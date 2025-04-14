@@ -7,10 +7,6 @@ SERVICE_STATUS g_ServiceStatus = {};
 // Service status structure updated by SCM calls
 SERVICE_STATUS_HANDLE g_StatusHandle = nullptr;
 
-// Global pointers to server and async handler used across control flow
-std::thread g_ServerThread;
-TAsyncHndlr* g_AsyncHndlr = nullptr;
-
 void runAsService() {
     // Define the service table for SCM: name + entry function
     SERVICE_TABLE_ENTRY serviceTable[] = {
@@ -45,8 +41,9 @@ void WINAPI serviceMain(DWORD argc, LPTSTR* argv) {
 
     LLMServer& server = LLMServer::Instance(PORT);
 
-    g_AsyncHndlr = new TAsyncHndlr();
-    g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
+    TAsyncHndlr& asyncHandler = TAsyncHndlr::Instance();
+    asyncHandler.Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
+
 
     server.SetKeepAlive(true);
 
@@ -55,18 +52,15 @@ void WINAPI serviceMain(DWORD argc, LPTSTR* argv) {
         return;
     }
 
-    g_ServerThread = std::thread([&server]() {
+    std::thread serverThread = std::thread([&server]() {
         server.RunMainLoop();
     });
 
     WaitForSingleObject(server.GetStopEvent(), INFINITE);
 
-    if (g_ServerThread.joinable()) {
-        g_ServerThread.join();
+    if (serverThread.joinable()) {
+        serverThread.join();
     }
-
-    delete g_AsyncHndlr;
-    g_AsyncHndlr = nullptr;
 
     g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
@@ -101,10 +95,9 @@ void runAsConsoleFallback() {
         return FALSE;
         }, TRUE);
 
-    TAsyncHndlr asyn_hdlr;
-    g_AsyncHndlr = &asyn_hdlr;
+    TAsyncHndlr& asyncHandler = TAsyncHndlr::Instance();
     
-    g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
+    asyncHandler.Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
 
     LLMServer& server = LLMServer::Instance(PORT);
     
@@ -125,8 +118,6 @@ void runAsConsoleFallback() {
     if (serverThread.joinable()) {
         serverThread.join();
     }
-    
-    g_AsyncHndlr = nullptr;
     printf("[Console] Shutdown complete. Exiting.\n");
     exit(0);
 }

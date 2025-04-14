@@ -1,5 +1,7 @@
 #include "tasynchndlr.hpp"
 
+TAsyncHndlr* TAsyncHndlr::s_instance = nullptr;
+
 TAsyncHndlr::TAsyncHndlr()
     : vReqQueue(nullptr),
       vReqThStartEvent(nullptr),
@@ -10,6 +12,14 @@ TAsyncHndlr::TAsyncHndlr()
       vReqProcessor(nullptr),
       vThData(nullptr)
 {}
+
+TAsyncHndlr& TAsyncHndlr::Instance() {
+    if (!s_instance) {
+        s_instance = new TAsyncHndlr();
+    }
+    return *s_instance;
+}
+
 
 TAsyncHndlr::~TAsyncHndlr() {
     Finalize();

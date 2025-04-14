@@ -237,13 +237,7 @@ bool ConnectionContext::SendMessageOnSocket(){
 
 bool ConnectionContext::ProcessHTTPMessage(LLMServer * pServer){
 
-    if (!g_AsyncHndlr) {
-        printf("[ConnectionContext] ERROR: g_AsyncHndlr not initialized\n");
-        return false;
-    }
-
-    g_AsyncHndlr->Write(this);
-
+    TAsyncHndlr::Instance().Write(this);
     vIOMsgState = MsgState::STATE_AWAITING_RESPONSE;
     return false;
 }

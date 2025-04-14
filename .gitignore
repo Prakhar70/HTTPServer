@@ -2,3 +2,5 @@
 /.vscode
 /out
 /CMakeSettings.json
+/docs/html
+/docs/latex

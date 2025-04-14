@@ -14,9 +14,9 @@ class ConnectionContext;
 
 class LLMServer {
 public:
-    LLMServer(USHORT port);
     static LLMServer& Instance(USHORT port);
     static LLMServer& Instance(); // No port after first init
+
     bool Initialize();
     void RunMainLoop();  // actual server logic
     HANDLE GetStopEvent() const;
@@ -30,6 +30,8 @@ public:
     HANDLE GetIOCP() const;
     
 private:
+    LLMServer(USHORT port);
+    
     void SetAcceptNewConnection(bool state);
     bool InitializeBaseServer();
     bool GetAcceptNewConnection() const;

@@ -4,12 +4,11 @@
 #include "treqprocessor.hpp"
 #include "syncflag.hpp"
 #include "syncqueue.hpp"
-
 #include <windows.h>
 
 class TAsyncHndlr;
-
-extern TAsyncHndlr* g_AsyncHndlr;
+class TReqProcessor;
+class TThreadPoolHndlr;
 
 struct tThreadData {
     HANDLE uEvent[3]; // [0] start, [1] stop, [2] prepare shutdown
@@ -17,18 +16,15 @@ struct tThreadData {
     TAsyncHndlr* uAsyncHndlr;
 };
 
-class TThreadPoolHndlr;
-
 class TAsyncHndlr {
 public:
-    TAsyncHndlr();
-    ~TAsyncHndlr();
+    
+    static TAsyncHndlr& Instance();
 
     void Initialize(TReqProcessor* pReqProcessor, uint16_t pThreadCount);
     void Finalize();
 
     void Write(void* pRequest);
-    //void WriteFirst(void* pRequest);
 
     void* GetRequest();
     TThreadPoolHndlr* GetThreadPoolHndlr();
@@ -40,11 +36,11 @@ public:
     void StartPrepareForShutdown();
 
 private:
+    TAsyncHndlr();
+    ~TAsyncHndlr();
     void InitializeThreadPoolHndlr(uint16_t pThreadCount);
     void FinalizeThreadPoolHndlr();
     static DWORD WINAPI ProcessQRequest(LPVOID lpParam);
-
-private:
     SyncFlag vAsyncSyncFlag;
 
     SyncQueue<void *>* vReqQueue;
@@ -56,4 +52,5 @@ private:
     TThreadPoolHndlr* vThreadPoolHndlr;
     TReqProcessor* vReqProcessor;
     tThreadData* vThData;
+    static TAsyncHndlr* s_instance;
 };
