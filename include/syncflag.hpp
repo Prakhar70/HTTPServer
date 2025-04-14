@@ -2,6 +2,7 @@
 #pragma once
 
 #include "pch.hpp"
+
 #include <cstdio>
 
 struct SyncFlag {

@@ -1,7 +1,5 @@
 // service.cpp
 #include "service.hpp"
-#include "LLMServer.hpp"
-
 
 // Windows service state
 SERVICE_STATUS g_ServiceStatus = {};
@@ -51,7 +49,7 @@ void WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
     //It’s a polite and expected handshake with Windows — "starting now..." → "all set!"
 
-    g_ServerInstance = new LLMServer(8080);
+    g_ServerInstance = new LLMServer(3000);
     g_AsyncHndlr = new TAsyncHndlr();
     g_AsyncHndlr->Initialize(new LLMReqProcessor(), 15);
 
@@ -115,7 +113,7 @@ void RunAsConsoleFallback() {
         return FALSE;
         }, TRUE);
 
-    LLMServer server(8080);
+    LLMServer server(3000);
     TAsyncHndlr asyn_hdlr;
     g_AsyncHndlr = &asyn_hdlr;
     

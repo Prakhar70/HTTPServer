@@ -1,7 +1,9 @@
 // syncqueue.hpp
 #pragma once
-#include <queue>
+
 #include "syncflag.hpp"
+
+#include <queue>
 
 template <typename T>
 class SyncQueue {
