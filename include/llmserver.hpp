@@ -2,7 +2,6 @@
 #pragma once
 
 #include "syncflag.hpp"
-#include "pch.hpp"
 #include "connection_context.hpp"
 #include "socket_manager.hpp"
 
