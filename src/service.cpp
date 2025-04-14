@@ -1,7 +1,6 @@
 // service.cpp
 
 #include "service.hpp"
-//TODO-Comments
 
 SERVICE_STATUS g_ServiceStatus = {};
 
@@ -39,15 +38,14 @@ void WINAPI serviceMain(DWORD argc, LPTSTR* argv) {
     
 
     g_ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
-
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
 
     g_ServiceStatus.dwCurrentState = SERVICE_RUNNING;
-
     SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
     //It’s a polite and expected handshake with Windows — "starting now..." → "all set!"
 
     g_ServerInstance = new LLMServer(PORT);
+
     g_AsyncHndlr = new TAsyncHndlr();
     g_AsyncHndlr->Initialize(new LLMReqProcessor(), WORKER_THREADS_COUNT);
 
@@ -60,7 +58,7 @@ void WINAPI serviceMain(DWORD argc, LPTSTR* argv) {
 
     g_ServerThread = std::thread([]() {
         g_ServerInstance->RunMainLoop();
-        });
+    });
 
     WaitForSingleObject(g_ServerInstance->GetStopEvent(), INFINITE);
 

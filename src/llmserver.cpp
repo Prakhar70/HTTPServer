@@ -1,7 +1,13 @@
 #include "llmserver.hpp"
 
 LLMServer::LLMServer(USHORT port)
-    : vIsAcceptNewConns(true), vStopEvent(nullptr), vIOCompletionPort(nullptr), vThreadCount(IOTHREADS_COUNT), vConnectionContextCount(0), vKeepConnection(true), vPerformKeepAlive(false) {
+    : vIsAcceptNewConns(true),
+    vStopEvent(nullptr),
+    vIOCompletionPort(nullptr),
+    vThreadCount(IOTHREADS_COUNT),
+    vConnectionContextCount(0),
+    vKeepConnection(true),
+    vPerformKeepAlive(false) {
     vSocketMgr = new SocketManager(port);
 }
 
