@@ -155,9 +155,9 @@ void ConnectionContext::UpdateHeaderInfo() {
             }
         } else if (lowerKey == "connection") {
             if (lowerValue == "keep-alive") {
-                vHTTPHeaderInfo->uKeepAlive = Trival::True;
+                vHTTPHeaderInfo->uKeepAlive = Trival::IS_TRUE;
             } else {
-                vHTTPHeaderInfo->uKeepAlive = Trival::False;
+                vHTTPHeaderInfo->uKeepAlive = Trival::IS_FALSE;
                 SetKeepConnectionAlive(false);
             }
         }

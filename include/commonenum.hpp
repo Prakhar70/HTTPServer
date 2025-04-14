@@ -30,6 +30,6 @@ enum class ReqRespType{
 
 enum class Trival{
     UNKNOWN = 0,
-    True = 1,
-    False = 2
+    IS_TRUE = 1,
+    IS_FALSE = 2
 };
